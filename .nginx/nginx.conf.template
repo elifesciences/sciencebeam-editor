@@ -2,23 +2,42 @@ events {
   worker_connections  1024;
 }
 http {
- server {
-   listen 80;
-   listen [::]:80;
+  server {
+    listen 80;
+    listen [::]:80;
 
-   server_name localhost;
+    server_name editor.localhost;
 
-   location /api/v1 {
-        rewrite /api/v1/(.*) /$1  break;
-        proxy_pass http://${PREFIX}-article-store:8080/;
-        proxy_set_header Host $host;
-        proxy_redirect http://${PREFIX}-localstack:4566/ http://localhost:4566/;
-   }
+    location /api/v1 {
+      rewrite /api/v1/(.*) /$1  break;
+      proxy_pass http://${PREFIX}-article-store:8080/;
+      proxy_set_header Host $host;
+      proxy_redirect http://${PREFIX}-localstack:4566/ http://localhost:4566/;
+    }
 
-   location / {
-       proxy_pass http://${PREFIX}-client:80/;
-       proxy_set_header Host $host;
-   }
+    location / {
+      proxy_pass http://${PREFIX}-client:80/;
+      proxy_set_header Host $host;
+    }
+  }
 
- }
+  server {
+    listen 80;
+    listen [::]:80;
+
+    server_name localhost;
+
+    location /api/convert {
+      proxy_pass http://${PREFIX}-sciencebeam:8075/api/convert;
+    }
+
+    location /upload {
+      proxy_pass http://${PREFIX}-bridge:8080/upload;
+    }
+
+    location / {
+      proxy_pass http://${PREFIX}-demo:80/;
+      proxy_set_header Host $host;
+    }
+  }
 }
