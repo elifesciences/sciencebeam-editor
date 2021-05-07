@@ -1,5 +1,9 @@
 'use strict';
 
+function setStatus(message) {
+  document.getElementById('status').innerHTML = message;
+}
+
 function postXMLData(data) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -38,16 +42,18 @@ function postFileData(data, filename) {
 }
 
 function handleFileData(data, filename) {
+  setStatus('Sending to ScienceBeam...');
   const getResponseToFile = postFileData(data, filename);
   getResponseToFile.then((responseData) => {
-    console.log(`Sucess!`);
+    setStatus('Sending to XML to Libero Editor...');
     postXMLData(responseData).then((json) => {
-      const link = document.createElement('div');
-      link.innerHTML = `<a href="http://editor.localhost:4000/?articleId=${json.articleId}" target="_blank">View the article here</a>`;
-      document.body.appendChild(link);
+      const link = `<a href="http://editor.localhost:4000/?articleId=${json.articleId}" target="_blank">View the article here</a>`;
+      setStatus(link);
+    }).catch( (reason) => {
+      setStatus(`Failed to send file to Libero Editor: ${reason}`);
     });
   }).catch((reason) => {
-    console.log(`Failed to process file due to a network problem. ${reason}`);
+    setStatus(`Failed to process PDF in ScienceBeam: ${reason}`);
   });
 }
 
@@ -62,7 +68,6 @@ function handleUpload() {
 }
 
 window.onload = () => {
-  console.log('loaded');
   const fileUploader = document.getElementById("filePicker");
   if (fileUploader !== undefined) {
     fileUploader.addEventListener("change", handleUpload, false);
