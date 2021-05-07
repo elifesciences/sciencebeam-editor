@@ -82,12 +82,46 @@ services:
     depends_on:
       - editor-article-store
 
+  file-watcher:
+    build:
+      context: './src/file-watcher'
+    image: file-watcher:${TAG-local}
+    container_name: ${PREFIX-sciencebeam-editor}-file-watcher
+    restart: unless-stopped
+    depends_on:
+      - mongo
+      - localstack
+    environment: 
+      - S3_BUCKET=s3-editor-source-bucket
+      - AWS_ENDPOINT=http://${PREFIX-sciencebeam-editor}-localstack:4566
+    volumes: 
+      - "./articles:/bucket-to-watch:ro"
+
+  bridge:
+    build:
+      context: './src/bridge'
+    image: bridge:${TAG-local}
+    container_name: ${PREFIX-sciencebeam-editor}-bridge
+    restart: unless-stopped
+    environment: 
+      - DEPOSIT_PATH=/articles
+    volumes: 
+      - "./articles:/articles:rw"
+
+  demo:
+    image: nginx:alpine
+    container_name: ${PREFIX-sciencebeam-editor}-demo
+    volumes:
+      - './src/demo:/usr/share/nginx/html:ro'
+
   nginx:
     image: nginx:alpine
     container_name: ${PREFIX-sciencebeam-editor}-nginx
     depends_on:
       - editor-article-store
       - editor-client
+      - sciencebeam
+      - demo
     environment:
       - PREFIX=${PREFIX-sciencebeam-editor}
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
