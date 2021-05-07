@@ -36,6 +36,24 @@ services:
       retries: 3
       start_period: 20s
 
+  grobid:
+    image: lfoppiano/grobid:${GROBID_TAG-0.6.1}
+    container_name: ${PREFIX-sciencebeam-editor}-grobid
+    restart: unless-stopped
+    environment:
+        - JAVA_OPTS=-Xmx1g
+
+  sciencebeam:
+    image: elifesciences/sciencebeam:${SCIENCEBEAM_TAG-0.0.10}
+    container_name: ${PREFIX-sciencebeam-editor}-sciencebeam
+    restart: unless-stopped
+    depends_on:
+      - grobid
+    command: ./server.sh \
+        --host=0.0.0.0 --port=8075 \
+        --pipeline grobid \
+        --grobid-url http://${PREFIX-sciencebeam-editor}-grobid:8070/api
+
   editor-article-store:
     image: liberoadmin/editor-article-store:${TAG-latest}
     container_name: ${PREFIX-sciencebeam-editor}-article-store
