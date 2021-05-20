@@ -55,13 +55,20 @@ services:
       - DB_NAME=editor
       - DB_USER=root
       - DB_PASSWORD=password
-      - AWS_REGION=eu-west-1
+      - AWS_REGION=us-east-1
       - AWS_ACCESS_KEY=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_BUCKET_INPUT_EVENT_QUEUE_URL=http://${PREFIX-sciencebeam-editor}-localstack:4566/000000000000/EditorImportQueue
       - AWS_ENDPOINT=http://${PREFIX-sciencebeam-editor}-localstack:4566
       - AWS_SRC_BUCKET=s3-editor-source-bucket
       - AWS_EDITOR_BUCKET=s3-editor-destination-bucket
+      - IMPORT_TRANSFORM_ENABLED=true
+      - IMPORT_TRANSFORM_URL=http://${PREFIX-sciencebeam-editor}-transformer:8984/v1tov2
+
+  editor-transformer:
+    container_name: ${PREFIX-sciencebeam-editor}-transformer
+    image: elifesciences/basex-transformer:${TAG-latest}
+    restart: unless-stopped
 
   editor-client:
     image: liberoadmin/editor-client:${TAG-latest}
